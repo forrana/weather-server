@@ -10,12 +10,12 @@ let db = new sqlite3.Database(':memory:', (err) => {
 });
 
 db.serialize(function () {
-  db.run('CREATE TABLE IF NOT EXISTS readings (temperature TEXT, humidity TEXT)')
+  db.run('CREATE TABLE IF NOT EXISTS readings (temperature TEXT, humidity TEXT, created_at datetime default current_timestamp)')
 })
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   db.serialize(function () {
-      let rows =  db.all('SELECT temperature, humidity FROM readings', function (err, rows) {
+      let rows =  db.all('SELECT temperature, humidity, created_at FROM readings', function (err, rows) {
           res.send(rows);
       })
   })
@@ -24,10 +24,9 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
 
   db.serialize(function () {
-    db.run('CREATE TABLE IF NOT EXISTS readings (temperature TEXT, humidity TEXT)')
-    const stmt = db.prepare('INSERT INTO readings VALUES (?, ?)')
+    const stmt = db.prepare('INSERT INTO readings VALUES (?, ?, ?)')
     const body = req.body
-    stmt.run(body.temperature, body.humidity)
+    stmt.run(body.temperature, body.humidity, Date.now())
     stmt.finalize()
     res.send("Done");
   })
